@@ -4,5 +4,9 @@ PyPEMA is a Python implementation of the PEMA Toolbox originaly developed in MAT
 # Installation
 PyPEMA is currently best used on a Python interactive console such as IPython. This way the PyPEMA project can be cloned or downloaded to a local machine and be used right away.
 
+# User Guide
+## Data
+... to be completed!
+
 # References
 [1] Abel Folch-Fortuny, Rodolfo Marques, Inês A. Isídro, Rui Oliveira, Alberto Ferrer (2016); "Principal Elementary Mode Analysis". Molecular Biosystems, 12: 737-746. DOI: 10.1039/c5mb00828j
