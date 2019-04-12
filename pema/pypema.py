@@ -23,7 +23,6 @@ along with PyPEMA.  If not, see <https://www.gnu.org/licenses/>.
 import timeit
 import time
 
-from pema import dataloader
 from pema import calcfuncs
 from pema import branching
 
