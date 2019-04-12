@@ -20,8 +20,8 @@ along with PyPEMA.  If not, see <https://www.gnu.org/licenses/>.
 
 import scipy.io as spio
 
-def load_matfile(filename):
-    data = spio.loadmat('./data/' + filename)
+def load_matfile(filepath):
+    data = spio.loadmat(filepath)
     
     X = data['X']
     EM = data['EM']

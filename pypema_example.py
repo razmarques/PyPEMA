@@ -40,17 +40,21 @@ Please consult the documentation for further details about the PEMA algorithm.
 nrel = 3 # number of relaxations
 nbranch = 1 # number of branch points
 maxPEMs = 5 # number of PEMs to be extracted
-data_filename = 'ecoli.mat' # should be a .mat file present in the data folder containing both flux and the elementary mode matrix
+# data_filename = 'ecoli.mat' # should be a .mat file present in the data folder containing both flux and the elementary mode matrix
+
+# The input data should be a numpy 2D-array for the flux and elementary mode matrices. PyPEMA includes an example MAT file containing both matrices in ./data/ecoli.mat. The module dataloader.py contains an utility that handles the conversion of X and EM to a numpy array.
+datafile = './data/ecoli.mat'
+X, EM = dataloader.load_matfile(datafile)
 
 # Run PyPEMA. The results are presented as a 2D-numpy array, with the first
 # column corresponding to the percentage of explained variance for each
 # set of extracted PEMs, represented on each row.
-result = pypema.run(data_filename, nrel, nbranch, maxPEMs)
+result = pypema.run(X, EM, nrel, nbranch, maxPEMs)
 
 # -------------- Plot functions -------------------#
 # Some plots require the flux (X) and elementary mode (EM) matrices a PEM solution.
 EMlist = np.int64(result[-1, 1:]) # the last row contains the solution with maximum number of PEMs extracted
-X, EM = dataloader.load_matfile('ecoli.mat')
+X, EM = dataloader.load_matfile(datafile)
 
 # Print scree plot
 plotfuncs.scree_plot(result)

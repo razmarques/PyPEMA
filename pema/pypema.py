@@ -27,10 +27,7 @@ from pema import dataloader
 from pema import calcfuncs
 from pema import branching
 
-def run(data_filename, nrel, nbranch, maxPEMs):
-    
-    # Load data
-    X, EM = dataloader.load_matfile(data_filename)
+def run(X, EM, nrel, nbranch, maxPEMs):
     
     # Data pretreatment
     normX, normEM = calcfuncs.pretreatment(X, EM)
@@ -60,7 +57,7 @@ def run(data_filename, nrel, nbranch, maxPEMs):
     elif nbranch == 10:
         result = branching.branch10(normX, normEM, nrel, maxPEMs)
     else:
-        raise ValueError("Only a maximum of 10 branches are allowed.")
+        raise ValueError('Only a maximum of 10 branches are allowed.')
     
     toc = timeit.default_timer()
     time.sleep(0.2)
