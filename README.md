@@ -11,8 +11,10 @@ PyPEMA receives two data inputs, a matrix containing the flux data (X) and a mat
 ## Run PyPEMA
 To run PyPEMA, import the pypema module from pema package and run as following:
 
+```
 from pema import pypema
 result = pypema.run(X, EM, nrel, nbranch, maxPEMs)
+```
 
 Examples for the use of PyPEMA are provided in pypema_example.py
 
