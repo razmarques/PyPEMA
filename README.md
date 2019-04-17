@@ -16,7 +16,7 @@ from pema import pypema
 result = pypema.run(X, EM, nrel, nbranch, maxPEMs)
 ```
 
-Examples for the use of PyPEMA are provided in pypema_example.py
+Examples for the use of PyPEMA are provided in ```pypema_example.py```
 
 # References
 [1] Abel Folch-Fortuny, Rodolfo Marques, Inês A. Isídro, Rui Oliveira, Alberto Ferrer (2016); "Principal Elementary Mode Analysis". Molecular Biosystems, 12: 737-746. DOI: 10.1039/c5mb00828j
