@@ -25,6 +25,7 @@ import time
 
 from pema import calcfuncs
 from pema import branching
+from pema import dataio
 
 def run(X, EM, nrel, nbranch, maxPEMs):
     
@@ -61,5 +62,9 @@ def run(X, EM, nrel, nbranch, maxPEMs):
     toc = timeit.default_timer()
     time.sleep(0.2)
     print("Elapsed time is {} seconds".format(toc - tic))
-    
+
+    # Save results to file
+    savefile = 'pems-{0}_rel-{1}_branch'.format(nrel, nbranch)
+    dataio.save_formated_result(savefile, result)
+
     return result

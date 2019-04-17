@@ -105,5 +105,4 @@ venv.bak/
 
 # devel stuff
 toolbox/
-test.py
 tests/
