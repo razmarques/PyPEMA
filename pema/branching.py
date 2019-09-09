@@ -20,6 +20,8 @@ You should have received a copy of the GNU General Public License
 along with PyPEMA.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+# TODO: reimplement this module to allow easier maintainability
+
 import numpy as np
 
 import progressbar as pb
