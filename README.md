@@ -13,10 +13,10 @@ To run PyPEMA, import the pypema module from pema package and run as following:
 
 ```
 from pema import pypema
-result = pypema.run(X, EM, nrel, nbranch, maxPEMs)
+result = pypema.run(X, EM, nrel, nbranch, maxPEMs, save_output)
 ```
 
-Examples for the use of PyPEMA are provided in ```pypema_example.py```
+Examples for the use of PyPEMA are provided in ```pypema_example.ipynp``` and ```pypema_example.py```
 
 # References
 [1] Abel Folch-Fortuny, Rodolfo Marques, Inês A. Isídro, Rui Oliveira, Alberto Ferrer (2016); "Principal Elementary Mode Analysis". Molecular Biosystems, 12: 737-746. DOI: 10.1039/c5mb00828j
