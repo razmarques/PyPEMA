@@ -27,7 +27,7 @@ from pema import calcfuncs
 from pema import branching
 from pema import dataio
 
-def run(X, EM, nrel, nbranch, maxPEMs):
+def run(X, EM, nrel, nbranch, maxPEMs, save_output=False):
     
     # Data pretreatment
     normX, normEM = calcfuncs.pretreatment(X, EM)
@@ -64,7 +64,8 @@ def run(X, EM, nrel, nbranch, maxPEMs):
     print("Elapsed time is {} seconds".format(toc - tic))
 
     # Save results to file
-    savefile = 'pems-{0}_rel-{1}_branch'.format(nrel, nbranch)
-    dataio.save_formated_result(savefile, result)
+    if save_output:
+        savefile = 'pems-{0}_rel-{1}_branch'.format(nrel, nbranch)
+        dataio.save_formated_result(savefile, result)
 
     return result
