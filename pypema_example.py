@@ -53,7 +53,7 @@ result = pypema.run(X, EM, nrel, nbranch, maxPEMs)
 
 # -------------- Plot functions -------------------#
 # Some plots require the flux (X) and elementary mode (EM) matrices a PEM solution.
-EMlist = np.int64(result[-1, 1:]) # the last row contains the solution with maximum number of PEMs extracted
+PEM_list = np.int64(result[-1, 1:]) # the last row contains the solution with maximum number of PEMs extracted
 X, EM = dataio.load_matfile(datafile)
 
 # Print scree plot
@@ -61,18 +61,18 @@ plotfuncs.scree_plot(result)
 
 # Print the weights_vars plot. This plot shows the explained variance for
 # each individual PEM in the chosen solution.
-plotfuncs.weights_vars(X, EM, EMlist)
+plotfuncs.weights_vars(X, EM, PEM_list)
 
-# Print the weights plot. The columns represent PEM solution in EMlist and
+# Print the weights plot. The columns represent PEM solution in PEM_list and
 # the rows the scenarios in the flux data.
-plotfuncs.weighting_plot(X, EM, EMlist)
+plotfuncs.weighting_plot(X, EM, PEM_list)
 
 # Print plot with observed fluxes vs predicted fluxes (recovered by the PEMs)
-plotfuncs.obs_vs_pred(X, EM, EMlist)
+plotfuncs.obs_vs_pred(X, EM, PEM_list)
 
-# Print PEM plots. The columns represent a solution of PEMs defined by EMlist.
+# Print PEM plots. The columns represent a solution of PEMs defined by PEM_list.
 # The rows represent the fluxes of the metabolic network
-plotfuncs.pem_plot(X, EM, EMlist)
+plotfuncs.pem_plot(X, EM, PEM_list)
 
 # Print explained variance per observations plot
-plotfuncs.variance_obs(X, EM, EMlist)
+plotfuncs.variance_obs(X, EM, PEM_list)
