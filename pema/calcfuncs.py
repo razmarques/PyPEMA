@@ -22,6 +22,7 @@ along with PyPEMA.  If not, see <https://www.gnu.org/licenses/>.
 
 import numpy as np
 
+
 def pretreatment(X, EM):
     """
     This function executes the normalization of the flux and Elementary mode
@@ -37,6 +38,7 @@ def pretreatment(X, EM):
         
     return normX, normEM
 
+
 def compute_fluxes_estimate(X, EM, positive_scores):
     
     # Computation of the scores matrix (T)
@@ -51,6 +53,7 @@ def compute_fluxes_estimate(X, EM, positive_scores):
     Xrec = np.dot(T, EM.T)
     return Xrec, T
 
+
 def explained_variance(X, EM):
     
     Xrec, _ = compute_fluxes_estimate(X, EM, True)
@@ -58,6 +61,7 @@ def explained_variance(X, EM):
     expVar = 100 * (1 - ( np.sum(np.square(Err)) / np.sum(np.square(X)) ) )
     
     return expVar
+
 
 def generic_high_EMs(X, EM, EMlist, nrel):
     
