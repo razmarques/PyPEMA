@@ -21,6 +21,7 @@ along with PyPEMA.  If not, see <https://www.gnu.org/licenses/>.
 import numpy as np
 import scipy.io as spio
 
+
 def format_result(result_nparray):
 
     # Format titlebar
@@ -32,10 +33,11 @@ def format_result(result_nparray):
     rowdata = ''
     maxlen = 0
     for irow in result_nparray:
-        dec = 4 # number of decimal places to round the exmplained variance value
+        dec = 4  # number of decimal places to round the explained
+                 # variance value
 
         # get explained variance
-        expv = np.round(irow[0], dec)
+        exp_var = np.round(irow[0], dec)
 
         # get elementary modes
         nems = irow[1:]
@@ -48,7 +50,7 @@ def format_result(result_nparray):
         for em in nznems:
             elmostr += str(em) + ', '
 
-        rowentry = str(expv) + ' '*(len(tb1) - dec) + elmostr.rstrip(', ') + "\n"
+        rowentry = str(exp_var) + ' '*(len(tb1) - dec) + elmostr.rstrip(', ') + "\n"
         if len(rowentry) > maxlen:
             maxlen = len(rowentry)
 
@@ -62,13 +64,15 @@ def format_result(result_nparray):
 
     return formatted_result
 
+
 def load_matfile(filepath):
     data = spio.loadmat(filepath)
     
-    X = data['X']
-    EM = data['EM']
+    fluxes = data['X']
+    elementary_modes = data['EM']
     
-    return X, EM
+    return fluxes, elementary_modes
+
 
 def save_formated_result(filename, result_nparray):
     fres = format_result(result_nparray)

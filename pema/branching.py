@@ -28,997 +28,1030 @@ import progressbar as pb
 
 from pema import calcfuncs
 
-def branch1(X, EM, nrel, maxPEMs):
-    nbranch = 1
+
+def branch_1(fluxes, elementary_modes, n_relax, max_pems):
+    n_branch = 1
     
     # Create working variables
-    result = np.zeros((maxPEMs, maxPEMs + 1))
-    outEMsStack = [None]*(nbranch + 1) # stores extracted EMs for each branch
-    expVarStack = [None]*(nbranch + 1) # stores variance values for each branch
+    result = np.zeros((max_pems, max_pems + 1))
+    out_elmo_stack = [None]*(n_branch + 1) # stores extracted EMs for each branch
+    exp_var_stack = [None]*(n_branch + 1) # stores variance values for each branch
     
-    allEMs, outEMsStack[0], expVarStack[0] = calcfuncs.generic_high_EMs(X, EM, np.array((), dtype='int64'), nrel)
+    all_elmos, out_elmo_stack[0], exp_var_stack[0] = calcfuncs.generic_high_elmos(
+        fluxes, elementary_modes, np.array((), dtype='int64'), n_relax
+    )
     
-    result[0][0] = expVarStack[0][0]
-    result[0][1] = outEMsStack[0][0]
+    result[0][0] = exp_var_stack[0][0]
+    result[0][1] = out_elmo_stack[0][0]
     
     # Setup progress bar
     options = ['\r', 'Progress: ', pb.Bar(marker='#',left='[',right=']'), ' ', pb.Percentage()]
-    pbar = pb.ProgressBar(widgets=options, maxval=nrel**nbranch)
+    pbar = pb.ProgressBar(widgets=options, maxval=n_relax**n_branch)
     pbar.start()
-    ibar = 0 # progress bar iterator
+    ibar = 0  # progress bar iterator
     
-    for i in range(nrel): # outEMsStack[0].size is too verbose
+    for i in range(n_relax): # out_elmo_stack[0].size is too verbose
         # First branch point
-        extraEMs = np.array([outEMsStack[0][i]])
-        prev_expVar = expVarStack[0][i]
+        extra_elmos = np.array([out_elmo_stack[0][i]])
+        prev_exp_var = exp_var_stack[0][i]
         
         ipem = 0 # counter for principal elementary modes
-        while ipem < maxPEMs-1 and prev_expVar < 100:
+        while ipem < max_pems-1 and prev_exp_var < 100:
             ipem += 1
-            allEMs, outEMsStack[1], expVarStack[1] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+            all_elmos, out_elmo_stack[1], exp_var_stack[1] = calcfuncs.generic_high_elmos(
+                fluxes, elementary_modes, extra_elmos, n_relax
+            )
             
-            if nrel > 0 and expVarStack[1][0] > prev_expVar:
+            if n_relax > 0 and exp_var_stack[1][0] > prev_exp_var:
                 
-                if expVarStack[1][0] > result[ipem,0]:
-                    ne = allEMs.shape[0]
+                if exp_var_stack[1][0] > result[ipem,0]:
+                    ne = all_elmos.shape[0]
                     
-                    result[ipem][0] = expVarStack[1][0]
-                    result[ipem][range(1, ne+1)] = allEMs[:,0]
-                    prev_expVar = expVarStack[1][0]
+                    result[ipem][0] = exp_var_stack[1][0]
+                    result[ipem][range(1, ne+1)] = all_elmos[:,0]
+                    prev_exp_var = exp_var_stack[1][0]
                     
-                extraEMs = np.hstack((extraEMs, outEMsStack[1][0]))
+                extra_elmos = np.hstack((extra_elmos, out_elmo_stack[1][0]))
                 
             else:
-                ipem = maxPEMs - 1
+                ipem = max_pems - 1
         ibar += 1
         pbar.update(ibar)
     pbar.finish()
     return result
 
-def branch2(X, EM, nrel, maxPEMs):
-    nbranch = 2
+
+def branch_2(fluxes, elementary_modes, n_relax, max_pems):
+    n_branch = 2
     
     # Create working variables
-    result = np.zeros((maxPEMs, maxPEMs + 1))
-    outEMsStack = [None]*(nbranch + 1) # stores extracted EMs for each branch
-    expVarStack = [None]*(nbranch + 1) # stores variance values for each branch
+    result = np.zeros((max_pems, max_pems + 1))
+    out_elmo_stack = [None]*(n_branch + 1) # stores extracted EMs for each branch
+    exp_var_stack = [None]*(n_branch + 1) # stores variance values for each branch
     
-    allEMs, outEMsStack[0], expVarStack[0] = calcfuncs.generic_high_EMs(X, EM, np.array((), dtype='int64'), nrel)
+    all_elmos, out_elmo_stack[0], exp_var_stack[0] = \
+        calcfuncs.generic_high_elmos(
+        fluxes, elementary_modes, np.array((), dtype='int64'), n_relax
+    )
     
-    result[0][0] = expVarStack[0][0]
-    result[0][1] = outEMsStack[0][0]
+    result[0][0] = exp_var_stack[0][0]
+    result[0][1] = out_elmo_stack[0][0]
     
     # Setup progress bar
-    options = ['\r', 'Progress: ', pb.Bar(marker='#',left='[',right=']'), ' ', pb.Percentage()]
-    pbar = pb.ProgressBar(widgets=options, maxval=nrel**nbranch)
+    options = [
+        '\r',
+        'Progress: ',
+        pb.Bar(marker='#', left='[', right=']'),
+        ' ',
+        pb.Percentage()
+    ]
+    pbar = pb.ProgressBar(widgets=options, maxval=n_relax**n_branch)
     pbar.start()
-    ibar = 0 # progress bar iterator
+    ibar = 0  # progress bar iterator
     
-    for i in range(nrel):
+    for i in range(n_relax):
         # First branch point
-        extraEMs = np.array([outEMsStack[0][i]]) # select an EM from the relaxed EMs
-        allEMs, outEMsStack[1], expVarStack[1] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+        extra_elmos = np.array([out_elmo_stack[0][i]]) # select an elementary_modes from the relaxed EMs
+        all_elmos, out_elmo_stack[1], exp_var_stack[1] = \
+            calcfuncs.generic_high_elmos(
+            fluxes, elementary_modes, extra_elmos, n_relax
+        )
         
-        for j in range(nrel):
+        for j in range(n_relax):
             # Second branch point
-            if expVarStack[1][j] > result[1][0]:
-                ne = allEMs.shape[0]
+            if exp_var_stack[1][j] > result[1][0]:
+                ne = all_elmos.shape[0]
                 
-                result[1][0] = expVarStack[1][j]
-                result[1][range(1, ne+1)] = allEMs[:,0]
+                result[1][0] = exp_var_stack[1][j]
+                result[1][range(1, ne+1)] = all_elmos[:,0]
                 
-            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j]))
-            prev_expVar = expVarStack[1][j]
+            extra_elmos = np.hstack(
+                (out_elmo_stack[0][i], out_elmo_stack[1][j])
+            )
+            prev_exp_var = exp_var_stack[1][j]
             
             ipem = 1
-            while ipem < maxPEMs-1 and prev_expVar < 100:
+            while ipem < max_pems-1 and prev_exp_var < 100:
                 ipem += 1
-                allEMs, outEMsStack[2], expVarStack[2] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                all_elmos, out_elmo_stack[2], exp_var_stack[2] = \
+                    calcfuncs.generic_high_elmos(
+                        fluxes, elementary_modes, extra_elmos, n_relax
+                    )
                 
-                if nrel > 0 and expVarStack[2][0] > prev_expVar:
+                if n_relax > 0 and exp_var_stack[2][0] > prev_exp_var:
                     
-                    if expVarStack[2][0] > result[ipem,0]:
-                        ne = allEMs.shape[0]
+                    if exp_var_stack[2][0] > result[ipem,0]:
+                        ne = all_elmos.shape[0]
                         
-                        result[ipem][0] = expVarStack[2][0]
-                        result[ipem][range(1, ne+1)] = allEMs[:,0]
+                        result[ipem][0] = exp_var_stack[2][0]
+                        result[ipem][range(1, ne+1)] = all_elmos[:,0]
                     
-                    extraEMs = np.hstack((extraEMs, outEMsStack[2][0]))
-                    prev_expVar = expVarStack[2][0]
+                    extra_elmos = np.hstack(
+                        (extra_elmos, out_elmo_stack[2][0])
+                    )
+                    prev_exp_var = exp_var_stack[2][0]
                 else:
-                    ipem = maxPEMs - 1
+                    ipem = max_pems - 1
             ibar += 1
             pbar.update(ibar)
     pbar.finish()
     return result
 
-def branch3(X, EM, nrel, maxPEMs):
-    nbranch = 3
+
+def branch_3(fluxes, elementary_modes, n_relax, max_pems):
+    n_branch = 3
     
     # Create working variables
-    result = np.zeros((maxPEMs, maxPEMs + 1))
-    outEMsStack = [None]*(nbranch + 1) # stores extracted EMs for each branch
-    expVarStack = [None]*(nbranch + 1) # stores variance values for each branch
+    result = np.zeros((max_pems, max_pems + 1))
+    out_elmo_stack = [None]*(n_branch + 1) # stores extracted EMs for each branch
+    exp_var_stack = [None]*(n_branch + 1) # stores variance values for each branch
     
-    allEMs, outEMsStack[0], expVarStack[0] = calcfuncs.generic_high_EMs(X, EM, np.array((), dtype='int64'), nrel)
+    all_elmos, out_elmo_stack[0], exp_var_stack[0] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, np.array((), dtype='int64'), n_relax)
     
-    result[0][0] = expVarStack[0][0]
-    result[0][1] = outEMsStack[0][0]
+    result[0][0] = exp_var_stack[0][0]
+    result[0][1] = out_elmo_stack[0][0]
     
     # Setup progress bar
     options = ['\r', 'Progress: ', pb.Bar(marker='#',left='[',right=']'), ' ', pb.Percentage()]
-    pbar = pb.ProgressBar(widgets=options, maxval=nrel**nbranch)
+    pbar = pb.ProgressBar(widgets=options, maxval=n_relax**n_branch)
     pbar.start()
     ibar = 0 # progress bar iterator
     
-    for i in range(nrel):
+    for i in range(n_relax):
         # First branch point
-        extraEMs = np.array([outEMsStack[0][i]])
-        allEMs, outEMsStack[1], expVarStack[1] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+        extra_elmos = np.array([out_elmo_stack[0][i]])
+        all_elmos, out_elmo_stack[1], exp_var_stack[1] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
         
-        for j in range(nrel):
+        for j in range(n_relax):
             # Second branch point
-            if expVarStack[1][j] > result[1][0]:
-                ne = allEMs.shape[0]
+            if exp_var_stack[1][j] > result[1][0]:
+                ne = all_elmos.shape[0]
                 
-                result[1][0] = expVarStack[1][j]
-                result[1][range(1, ne+1)] = allEMs[:,0]
+                result[1][0] = exp_var_stack[1][j]
+                result[1][range(1, ne+1)] = all_elmos[:,0]
             
-            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j]))
-            allEMs, outEMsStack[2], expVarStack[2] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j]))
+            all_elmos, out_elmo_stack[2], exp_var_stack[2] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
             
-            for k in range(nrel):
+            for k in range(n_relax):
                 # Third branch point
                 
-                if expVarStack[2][k] > result[2][0]:
-                    ne = allEMs.shape[0]
+                if exp_var_stack[2][k] > result[2][0]:
+                    ne = all_elmos.shape[0]
                     
-                    result[2][0] = expVarStack[2][k]
-                    result[2][range(1, ne+1)] = allEMs[:,0]
+                    result[2][0] = exp_var_stack[2][k]
+                    result[2][range(1, ne+1)] = all_elmos[:,0]
                     
-                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k]))
-                prev_expVar = expVarStack[2][k]
+                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k]))
+                prev_exp_var = exp_var_stack[2][k]
                 
                 ipem = 2
-                while ipem < maxPEMs-1 and prev_expVar < 100:
+                while ipem < max_pems-1 and prev_exp_var < 100:
                     ipem += 1
-                    allEMs, outEMsStack[3], expVarStack[3] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                    all_elmos, out_elmo_stack[3], exp_var_stack[3] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                     
-                    if nrel > 0 and expVarStack[3][0] > prev_expVar:
+                    if n_relax > 0 and exp_var_stack[3][0] > prev_exp_var:
                         
-                        if expVarStack[3][0] > result[ipem,0]:
-                            ne = allEMs.shape[0]
+                        if exp_var_stack[3][0] > result[ipem,0]:
+                            ne = all_elmos.shape[0]
                             
-                            result[ipem][0] = expVarStack[3][0]
-                            result[ipem][range(1, ne+1)] = allEMs[:,0]
+                            result[ipem][0] = exp_var_stack[3][0]
+                            result[ipem][range(1, ne+1)] = all_elmos[:,0]
                             
-                        extraEMs = np.hstack((extraEMs, outEMsStack[3][0]))
-                        prev_expVar = expVarStack[3][0]
+                        extra_elmos = np.hstack((extra_elmos, out_elmo_stack[3][0]))
+                        prev_exp_var = exp_var_stack[3][0]
                     else:
-                        ipem = maxPEMs - 1    
+                        ipem = max_pems - 1    
                 ibar += 1
                 pbar.update(ibar)
     pbar.finish()     
     return result
 
-def branch4(X, EM, nrel, maxPEMs):
-    nbranch = 4
+
+def branch_4(fluxes, elementary_modes, n_relax, max_pems):
+    n_branch = 4
     
     # Create working variables
-    result = np.zeros((maxPEMs, maxPEMs + 1))
-    outEMsStack = [None]*(nbranch + 1) # stores extracted EMs for each branch
-    expVarStack = [None]*(nbranch + 1) # stores variance values for each branch
+    result = np.zeros((max_pems, max_pems + 1))
+    out_elmo_stack = [None]*(n_branch + 1) # stores extracted EMs for each branch
+    exp_var_stack = [None]*(n_branch + 1) # stores variance values for each branch
     
-    allEMs, outEMsStack[0], expVarStack[0] = calcfuncs.generic_high_EMs(X, EM, np.array((), dtype='int64'), nrel)
+    all_elmos, out_elmo_stack[0], exp_var_stack[0] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, np.array((), dtype='int64'), n_relax)
     
-    result[0][0] = expVarStack[0][0]
-    result[0][1] = outEMsStack[0][0]
+    result[0][0] = exp_var_stack[0][0]
+    result[0][1] = out_elmo_stack[0][0]
     
     # Setup progress bar
     options = ['\r', 'Progress: ', pb.Bar(marker='#',left='[',right=']'), ' ', pb.Percentage()]
-    pbar = pb.ProgressBar(widgets=options, maxval=nrel**nbranch)
+    pbar = pb.ProgressBar(widgets=options, maxval=n_relax**n_branch)
     pbar.start()
     ibar = -1 # progress bar iterator
     
-    for i in range(nrel):
+    for i in range(n_relax):
         # First branch point
-        extraEMs = np.array([outEMsStack[0][i]])
-        allEMs, outEMsStack[1], expVarStack[1] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+        extra_elmos = np.array([out_elmo_stack[0][i]])
+        all_elmos, out_elmo_stack[1], exp_var_stack[1] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
         
-        for j in range(nrel):
+        for j in range(n_relax):
             # Second branch point
-            if expVarStack[1][j] > result[1][0]:
-                ne = allEMs.shape[0]
+            if exp_var_stack[1][j] > result[1][0]:
+                ne = all_elmos.shape[0]
                 
-                result[1][0] = expVarStack[1][j]
-                result[1][range(1, ne+1)] = allEMs[:,0]
+                result[1][0] = exp_var_stack[1][j]
+                result[1][range(1, ne+1)] = all_elmos[:,0]
                 
-            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j]))
-            allEMs, outEMsStack[2], expVarStack[2] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j]))
+            all_elmos, out_elmo_stack[2], exp_var_stack[2] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
             
-            for k in range(nrel):
+            for k in range(n_relax):
                 # Third branch point
-                if expVarStack[2][k] > result[2][0]:
-                    ne = allEMs.shape[0]
+                if exp_var_stack[2][k] > result[2][0]:
+                    ne = all_elmos.shape[0]
                     
-                    result[2][0] = expVarStack[2][k]
-                    result[2][range(1, ne+1)] = allEMs[:,0]
+                    result[2][0] = exp_var_stack[2][k]
+                    result[2][range(1, ne+1)] = all_elmos[:,0]
                     
-                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k]))
-                allEMs, outEMsStack[3], expVarStack[3] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k]))
+                all_elmos, out_elmo_stack[3], exp_var_stack[3] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                 
-                for o in range(nrel):
+                for o in range(n_relax):
                     # Fourth branch point
-                    if expVarStack[3][o] > result[3][0]:
-                        ne = allEMs.shape[0]
+                    if exp_var_stack[3][o] > result[3][0]:
+                        ne = all_elmos.shape[0]
                         
-                        result[3][0] = expVarStack[3][o]
-                        result[3][range(1, ne+1)] = allEMs[:,0]
+                        result[3][0] = exp_var_stack[3][o]
+                        result[3][range(1, ne+1)] = all_elmos[:,0]
                         
-                    extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                          outEMsStack[3][o]))
-                    prev_expVar = expVarStack[3][0]
+                    extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                          out_elmo_stack[3][o]))
+                    prev_exp_var = exp_var_stack[3][0]
                     
                     ipem = 3
-                    while ipem < maxPEMs-1 and prev_expVar < 100:
+                    while ipem < max_pems-1 and prev_exp_var < 100:
                         ipem += 1
-                        allEMs, outEMsStack[4], expVarStack[4] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                        all_elmos, out_elmo_stack[4], exp_var_stack[4] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                         
-                        if nrel > 0 and expVarStack[4][0] > prev_expVar:
+                        if n_relax > 0 and exp_var_stack[4][0] > prev_exp_var:
                             
-                            if expVarStack[4][0] > result[ipem,0]:
-                                ne = allEMs.shape[0]
+                            if exp_var_stack[4][0] > result[ipem,0]:
+                                ne = all_elmos.shape[0]
                                 
-                                result[ipem][0] = expVarStack[4][0]
-                                result[ipem][range(1, ne+1)] = allEMs[:,0]
+                                result[ipem][0] = exp_var_stack[4][0]
+                                result[ipem][range(1, ne+1)] = all_elmos[:,0]
                                 
-                            extraEMs = np.hstack((extraEMs, outEMsStack[4][0]))
-                            prev_expVar = expVarStack[4][0]
+                            extra_elmos = np.hstack((extra_elmos, out_elmo_stack[4][0]))
+                            prev_exp_var = exp_var_stack[4][0]
                         else:
-                            ipem = maxPEMs - 1
+                            ipem = max_pems - 1
                     ibar += 1
                     pbar.update(ibar)
     pbar.finish()
     return result
 
-def branch5(X, EM, nrel, maxPEMs):
-    nbranch = 5
+
+def branch_5(fluxes, elementary_modes, n_relax, max_pems):
+    n_branch = 5
     
     # Create working variables
-    result = np.zeros((maxPEMs, maxPEMs + 1))
-    outEMsStack = [None]*(nbranch + 1) # stores extracted EMs for each branch
-    expVarStack = [None]*(nbranch + 1) # stores variance values for each branch
+    result = np.zeros((max_pems, max_pems + 1))
+    out_elmo_stack = [None]*(n_branch + 1) # stores extracted EMs for each branch
+    exp_var_stack = [None]*(n_branch + 1) # stores variance values for each branch
     
-    allEMs, outEMsStack[0], expVarStack[0] = calcfuncs.generic_high_EMs(X, EM, np.array((), dtype='int64'), nrel)
+    all_elmos, out_elmo_stack[0], exp_var_stack[0] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, np.array((), dtype='int64'), n_relax)
     
-    result[0][0] = expVarStack[0][0]
-    result[0][1] = outEMsStack[0][0]
+    result[0][0] = exp_var_stack[0][0]
+    result[0][1] = out_elmo_stack[0][0]
     
     # Setup progress bar
     options = ['\r', 'Progress: ', pb.Bar(marker='#',left='[',right=']'), ' ', pb.Percentage()]
-    pbar = pb.ProgressBar(widgets=options, maxval=nrel**nbranch)
+    pbar = pb.ProgressBar(widgets=options, maxval=n_relax**n_branch)
     pbar.start()
     ibar = 0 # progress bar iterator
     
-    for i in range(nrel):
+    for i in range(n_relax):
         # First branch point
-        extraEMs = np.array([outEMsStack[0][i]])
-        allEMs, outEMsStack[1], expVarStack[1] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+        extra_elmos = np.array([out_elmo_stack[0][i]])
+        all_elmos, out_elmo_stack[1], exp_var_stack[1] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
         
-        for j in range(nrel):
+        for j in range(n_relax):
             # Second branch point
-            if expVarStack[1][j] > result[1][0]:
-                ne = allEMs.shape[0]
+            if exp_var_stack[1][j] > result[1][0]:
+                ne = all_elmos.shape[0]
                 
-                result[1][0] = expVarStack[1][j]
-                result[1][range(1, ne+1)] = allEMs[:,0]
+                result[1][0] = exp_var_stack[1][j]
+                result[1][range(1, ne+1)] = all_elmos[:,0]
                 
-            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j]))
-            allEMs, outEMsStack[2], expVarStack[2] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j]))
+            all_elmos, out_elmo_stack[2], exp_var_stack[2] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
             
-            for k in range(nrel):
+            for k in range(n_relax):
                 # Third branch point
-                if expVarStack[2][k] > result[2][0]:
-                    ne = allEMs.shape[0]
+                if exp_var_stack[2][k] > result[2][0]:
+                    ne = all_elmos.shape[0]
                     
-                    result[2][0] = expVarStack[2][k]
-                    result[2][range(1, ne+1)] = allEMs[:,0]
+                    result[2][0] = exp_var_stack[2][k]
+                    result[2][range(1, ne+1)] = all_elmos[:,0]
                     
-                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k]))
-                allEMs, outEMsStack[3], expVarStack[3] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k]))
+                all_elmos, out_elmo_stack[3], exp_var_stack[3] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                 
-                for o in range(nrel):
+                for o in range(n_relax):
                     # Fourth branch point
-                    if expVarStack[3][o] > result[3][0]:
-                        ne = allEMs.shape[0]
+                    if exp_var_stack[3][o] > result[3][0]:
+                        ne = all_elmos.shape[0]
                         
-                        result[3][0] = expVarStack[3][o]
-                        result[3][range(1, ne+1)] = allEMs[:,0]
+                        result[3][0] = exp_var_stack[3][o]
+                        result[3][range(1, ne+1)] = all_elmos[:,0]
                         
-                    extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k],
-                                          outEMsStack[3][o]))
-                    allEMs, outEMsStack[4], expVarStack[4] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                    extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k],
+                                          out_elmo_stack[3][o]))
+                    all_elmos, out_elmo_stack[4], exp_var_stack[4] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                     
-                    for p in range(nrel):
+                    for p in range(n_relax):
                         # Fifth branch point
-                        if expVarStack[4][p] > result[4][0]:
-                            ne = allEMs.shape[0]
+                        if exp_var_stack[4][p] > result[4][0]:
+                            ne = all_elmos.shape[0]
                             
-                            result[4][0] =  expVarStack[4][p]
-                            result[4][range(1, ne+1)] = allEMs[:,0]
+                            result[4][0] =  exp_var_stack[4][p]
+                            result[4][range(1, ne+1)] = all_elmos[:,0]
                             
-                        extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                              outEMsStack[3][o], outEMsStack[4][p]))
-                        prev_expVar = expVarStack[4][0]
+                        extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                              out_elmo_stack[3][o], out_elmo_stack[4][p]))
+                        prev_exp_var = exp_var_stack[4][0]
                         
                         ipem = 4
-                        while ipem < maxPEMs-1 and prev_expVar < 100:
+                        while ipem < max_pems-1 and prev_exp_var < 100:
                             ipem += 1
-                            allEMs, outEMsStack[5], expVarStack[5] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                            all_elmos, out_elmo_stack[5], exp_var_stack[5] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                             
-                            if nrel > 0 and expVarStack[5][0] > prev_expVar:
+                            if n_relax > 0 and exp_var_stack[5][0] > prev_exp_var:
                                 
-                                if expVarStack[5][0] > result[ipem,0]:
-                                    ne = allEMs.shape[0]
+                                if exp_var_stack[5][0] > result[ipem,0]:
+                                    ne = all_elmos.shape[0]
                                     
-                                    result[ipem][0] = expVarStack[5][0]
-                                    result[ipem][range(1, ne+1)] = allEMs[:,0]
+                                    result[ipem][0] = exp_var_stack[5][0]
+                                    result[ipem][range(1, ne+1)] = all_elmos[:,0]
                                     
-                                extraEMs = np.hstack((extraEMs, outEMsStack[5][0]))
-                                prev_expVar = expVarStack[5][0]
+                                extra_elmos = np.hstack((extra_elmos, out_elmo_stack[5][0]))
+                                prev_exp_var = exp_var_stack[5][0]
                             else:
-                                ipem = maxPEMs - 1
+                                ipem = max_pems - 1
                         ibar += 1
                         pbar.update(ibar)
     pbar.finish()
     return result
 
-def branch6(X, EM, nrel, maxPEMs):
-    nbranch = 6
+
+def branch_6(fluxes, elementary_modes, n_relax, max_pems):
+    n_branch = 6
     
     # Create working variables
-    result = np.zeros((maxPEMs, maxPEMs + 1))
-    outEMsStack = [None]*(nbranch + 1) # stores extracted EMs for each branch
-    expVarStack = [None]*(nbranch + 1) # stores variance values for each branch
+    result = np.zeros((max_pems, max_pems + 1))
+    out_elmo_stack = [None]*(n_branch + 1) # stores extracted EMs for each branch
+    exp_var_stack = [None]*(n_branch + 1) # stores variance values for each branch
     
-    allEMs, outEMsStack[0], expVarStack[0] = calcfuncs.generic_high_EMs(X, EM, np.array((), dtype='int64'), nrel)
+    all_elmos, out_elmo_stack[0], exp_var_stack[0] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, np.array((), dtype='int64'), n_relax)
     
-    result[0][0] = expVarStack[0][0]
-    result[0][1] = outEMsStack[0][0]
+    result[0][0] = exp_var_stack[0][0]
+    result[0][1] = out_elmo_stack[0][0]
     
     # Setup progress bar
     options = ['\r', 'Progress: ', pb.Bar(marker='#',left='[',right=']'), ' ', pb.Percentage()]
-    pbar = pb.ProgressBar(widgets=options, maxval=nrel**nbranch)
+    pbar = pb.ProgressBar(widgets=options, maxval=n_relax**n_branch)
     pbar.start()
     ibar = 0 # progress bar iterator
     
-    for i in range(nrel):
+    for i in range(n_relax):
         # First branch point
-        extraEMs = np.array([outEMsStack[0][i]])
-        allEMs, outEMsStack[1], expVarStack[1] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+        extra_elmos = np.array([out_elmo_stack[0][i]])
+        all_elmos, out_elmo_stack[1], exp_var_stack[1] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
         
-        for j in range(nrel):
+        for j in range(n_relax):
             # Second branch point
-            if expVarStack[1][j] > result[1][0]:
-                ne = allEMs.shape[0]
+            if exp_var_stack[1][j] > result[1][0]:
+                ne = all_elmos.shape[0]
                 
-                result[1][0] = expVarStack[1][j]
-                result[1][range(1, ne+1)] = allEMs[:,0]
+                result[1][0] = exp_var_stack[1][j]
+                result[1][range(1, ne+1)] = all_elmos[:,0]
                 
-            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j]))
-            allEMs, outEMsStack[2], expVarStack[2] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j]))
+            all_elmos, out_elmo_stack[2], exp_var_stack[2] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
             
-            for k in range(nrel):
+            for k in range(n_relax):
                 # Third branch point
-                if expVarStack[2][k] > result[2][0]:
-                    ne = allEMs.shape[0]
+                if exp_var_stack[2][k] > result[2][0]:
+                    ne = all_elmos.shape[0]
                     
-                    result[2][0] = expVarStack[2][k]
-                    result[2][range(1, ne+1)] = allEMs[:,0]
+                    result[2][0] = exp_var_stack[2][k]
+                    result[2][range(1, ne+1)] = all_elmos[:,0]
                     
-                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k]))
-                allEMs, outEMsStack[3], expVarStack[3] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k]))
+                all_elmos, out_elmo_stack[3], exp_var_stack[3] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                 
-                for o in range(nrel):
+                for o in range(n_relax):
                     # Fourth branch point
-                    if expVarStack[3][o] > result[3][0]:
-                        ne = allEMs.shape[0]
+                    if exp_var_stack[3][o] > result[3][0]:
+                        ne = all_elmos.shape[0]
                         
-                        result[3][0] = expVarStack[3][o]
-                        result[3][range(1, ne+1)] = allEMs[:,0]
+                        result[3][0] = exp_var_stack[3][o]
+                        result[3][range(1, ne+1)] = all_elmos[:,0]
                         
-                    extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k],
-                                          outEMsStack[3][o]))
-                    allEMs, outEMsStack[4], expVarStack[4] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                    extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k],
+                                          out_elmo_stack[3][o]))
+                    all_elmos, out_elmo_stack[4], exp_var_stack[4] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                     
-                    for p in range(nrel):
+                    for p in range(n_relax):
                         # Fifth branch point
-                        if expVarStack[4][p] > result[4][0]:
-                            ne = allEMs.shape[0]
+                        if exp_var_stack[4][p] > result[4][0]:
+                            ne = all_elmos.shape[0]
                             
-                            result[4][0] =  expVarStack[4][p]
-                            result[4][range(1, ne+1)] = allEMs[:,0]
+                            result[4][0] =  exp_var_stack[4][p]
+                            result[4][range(1, ne+1)] = all_elmos[:,0]
                             
-                        extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                              outEMsStack[3][o], outEMsStack[4][p]))
-                        allEMs, outEMsStack[5], expVarStack[5] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                        extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                              out_elmo_stack[3][o], out_elmo_stack[4][p]))
+                        all_elmos, out_elmo_stack[5], exp_var_stack[5] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                         
-                        for q in range(nrel):
+                        for q in range(n_relax):
                             # Sixth branch point
-                            if expVarStack[5][q] > result[5][0]:
-                                ne = allEMs.shape[0]
+                            if exp_var_stack[5][q] > result[5][0]:
+                                ne = all_elmos.shape[0]
                                 
-                                result[5][0] = expVarStack[5][q]
-                                result[5][range(1, ne+1)] = allEMs[:,0]
+                                result[5][0] = exp_var_stack[5][q]
+                                result[5][range(1, ne+1)] = all_elmos[:,0]
                                 
-                            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                  outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q]))
-                            prev_expVar = expVarStack[5][0]
+                            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                  out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q]))
+                            prev_exp_var = exp_var_stack[5][0]
                             
                             ipem = 5
-                            while ipem < maxPEMs-1 and prev_expVar < 100:
+                            while ipem < max_pems-1 and prev_exp_var < 100:
                                 ipem += 1
-                                allEMs, outEMsStack[6], expVarStack[6] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                all_elmos, out_elmo_stack[6], exp_var_stack[6] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                 
-                                if nrel > 0 and expVarStack[6][0] > prev_expVar:
+                                if n_relax > 0 and exp_var_stack[6][0] > prev_exp_var:
                                     
-                                    if expVarStack[6][0] > result[ipem,0]:
-                                        ne = allEMs.shape[0]
+                                    if exp_var_stack[6][0] > result[ipem,0]:
+                                        ne = all_elmos.shape[0]
                                         
-                                        result[ipem][0] = expVarStack[6][0]
-                                        result[ipem][range(1, ne+1)] = allEMs[:,0]
+                                        result[ipem][0] = exp_var_stack[6][0]
+                                        result[ipem][range(1, ne+1)] = all_elmos[:,0]
                                         
-                                    extraEMs = np.hstack((extraEMs, outEMsStack[6][0]))
-                                    prev_expVar = expVarStack[6][0]
+                                    extra_elmos = np.hstack((extra_elmos, out_elmo_stack[6][0]))
+                                    prev_exp_var = exp_var_stack[6][0]
                                 else:
-                                    ipem = maxPEMs - 1
+                                    ipem = max_pems - 1
                             ibar += 1
                             pbar.update(ibar)
     pbar.finish()
     return result
 
-def branch7(X, EM, nrel, maxPEMs):
-    nbranch = 7
+
+def branch_7(fluxes, elementary_modes, n_relax, max_pems):
+    n_branch = 7
     
     # Create working variables
-    result = np.zeros((maxPEMs, maxPEMs + 1))
-    outEMsStack = [None]*(nbranch + 1) # stores extracted EMs for each branch
-    expVarStack = [None]*(nbranch + 1) # stores variance values for each branch
+    result = np.zeros((max_pems, max_pems + 1))
+    out_elmo_stack = [None]*(n_branch + 1) # stores extracted EMs for each branch
+    exp_var_stack = [None]*(n_branch + 1) # stores variance values for each branch
     
-    allEMs, outEMsStack[0], expVarStack[0] = calcfuncs.generic_high_EMs(X, EM, np.array((), dtype='int64'), nrel)
+    all_elmos, out_elmo_stack[0], exp_var_stack[0] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, np.array((), dtype='int64'), n_relax)
     
-    result[0][0] = expVarStack[0][0]
-    result[0][1] = outEMsStack[0][0]
+    result[0][0] = exp_var_stack[0][0]
+    result[0][1] = out_elmo_stack[0][0]
     
     # Setup progress bar
     options = ['\r', 'Progress: ', pb.Bar(marker='#',left='[',right=']'), ' ', pb.Percentage()]
-    pbar = pb.ProgressBar(widgets=options, maxval=nrel**nbranch)
+    pbar = pb.ProgressBar(widgets=options, maxval=n_relax**n_branch)
     pbar.start()
     ibar = 0 # progress bar iterator
     
-    for i in range(nrel):
+    for i in range(n_relax):
         # First branch point
-        extraEMs = np.array([outEMsStack[0][i]])
-        allEMs, outEMsStack[1], expVarStack[1] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+        extra_elmos = np.array([out_elmo_stack[0][i]])
+        all_elmos, out_elmo_stack[1], exp_var_stack[1] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
         
-        for j in range(nrel):
+        for j in range(n_relax):
             # Second branch point
-            if expVarStack[1][j] > result[1][0]:
-                ne = allEMs.shape[0]
+            if exp_var_stack[1][j] > result[1][0]:
+                ne = all_elmos.shape[0]
                 
-                result[1][0] = expVarStack[1][j]
-                result[1][range(1, ne+1)] = allEMs[:,0]
+                result[1][0] = exp_var_stack[1][j]
+                result[1][range(1, ne+1)] = all_elmos[:,0]
                 
-            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j]))
-            allEMs, outEMsStack[2], expVarStack[2] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j]))
+            all_elmos, out_elmo_stack[2], exp_var_stack[2] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
             
-            for k in range(nrel):
+            for k in range(n_relax):
                 # Third branch point
-                if expVarStack[2][k] > result[2][0]:
-                    ne = allEMs.shape[0]
+                if exp_var_stack[2][k] > result[2][0]:
+                    ne = all_elmos.shape[0]
                     
-                    result[2][0] = expVarStack[2][k]
-                    result[2][range(1, ne+1)] = allEMs[:,0]
+                    result[2][0] = exp_var_stack[2][k]
+                    result[2][range(1, ne+1)] = all_elmos[:,0]
                     
-                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k]))
-                allEMs, outEMsStack[3], expVarStack[3] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k]))
+                all_elmos, out_elmo_stack[3], exp_var_stack[3] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                 
-                for o in range(nrel):
+                for o in range(n_relax):
                     # Fourth branch point
-                    if expVarStack[3][o] > result[3][0]:
-                        ne = allEMs.shape[0]
+                    if exp_var_stack[3][o] > result[3][0]:
+                        ne = all_elmos.shape[0]
                         
-                        result[3][0] = expVarStack[3][o]
-                        result[3][range(1, ne+1)] = allEMs[:,0]
+                        result[3][0] = exp_var_stack[3][o]
+                        result[3][range(1, ne+1)] = all_elmos[:,0]
                         
-                    extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k],
-                                          outEMsStack[3][o]))
-                    allEMs, outEMsStack[4], expVarStack[4] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                    extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k],
+                                          out_elmo_stack[3][o]))
+                    all_elmos, out_elmo_stack[4], exp_var_stack[4] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                     
-                    for p in range(nrel):
+                    for p in range(n_relax):
                         # Fifth branch point
-                        if expVarStack[4][p] > result[4][0]:
-                            ne = allEMs.shape[0]
+                        if exp_var_stack[4][p] > result[4][0]:
+                            ne = all_elmos.shape[0]
                             
-                            result[4][0] =  expVarStack[4][p]
-                            result[4][range(1, ne+1)] = allEMs[:,0]
+                            result[4][0] =  exp_var_stack[4][p]
+                            result[4][range(1, ne+1)] = all_elmos[:,0]
                             
-                        extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                              outEMsStack[3][o], outEMsStack[4][p]))
-                        allEMs, outEMsStack[5], expVarStack[5] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                        extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                              out_elmo_stack[3][o], out_elmo_stack[4][p]))
+                        all_elmos, out_elmo_stack[5], exp_var_stack[5] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                         
-                        for q in range(nrel):
+                        for q in range(n_relax):
                             # Sixth branch point
-                            if expVarStack[5][q] > result[5][0]:
-                                ne = allEMs.shape[0]
+                            if exp_var_stack[5][q] > result[5][0]:
+                                ne = all_elmos.shape[0]
                                 
-                                result[5][0] = expVarStack[5][q]
-                                result[5][range(1, ne+1)] = allEMs[:,0]
+                                result[5][0] = exp_var_stack[5][q]
+                                result[5][range(1, ne+1)] = all_elmos[:,0]
                                 
-                            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                  outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q]))
-                            allEMs, outEMsStack[6], expVarStack[6] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                  out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q]))
+                            all_elmos, out_elmo_stack[6], exp_var_stack[6] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                             
-                            for r in range(nrel):
+                            for r in range(n_relax):
                                 # Seventh branch point
-                                if expVarStack[6][r] > result[6][0]:
-                                    ne = allEMs.shape[0]
+                                if exp_var_stack[6][r] > result[6][0]:
+                                    ne = all_elmos.shape[0]
                                     
-                                    result[6][0] = expVarStack[6][r]
-                                    result[6][range(1, ne+1)] = allEMs[:,0]
+                                    result[6][0] = exp_var_stack[6][r]
+                                    result[6][range(1, ne+1)] = all_elmos[:,0]
                                     
-                                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                      outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q],
-                                                      outEMsStack[6][r]))
-                                prev_expVar = expVarStack[6][0]
+                                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                      out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q],
+                                                      out_elmo_stack[6][r]))
+                                prev_exp_var = exp_var_stack[6][0]
                                 
                                 ipem = 6
-                                while ipem < maxPEMs-1 and prev_expVar < 100:
+                                while ipem < max_pems-1 and prev_exp_var < 100:
                                     ipem += 1
-                                    allEMs, outEMsStack[7], expVarStack[7] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                    all_elmos, out_elmo_stack[7], exp_var_stack[7] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                     
-                                    if nrel > 0 and expVarStack[7][0] > prev_expVar:
+                                    if n_relax > 0 and exp_var_stack[7][0] > prev_exp_var:
                                         
-                                        if expVarStack[7][0] > result[ipem][0]:
-                                            ne = allEMs.shape[0]
+                                        if exp_var_stack[7][0] > result[ipem][0]:
+                                            ne = all_elmos.shape[0]
                                             
-                                            result[ipem][0] = expVarStack[7][0]
-                                            result[ipem][range(1, ne+1)] = allEMs[:,0]
+                                            result[ipem][0] = exp_var_stack[7][0]
+                                            result[ipem][range(1, ne+1)] = all_elmos[:,0]
                                             
-                                        extraEMs = np.hstack((extraEMs, outEMsStack[7][0]))
-                                        prev_expVar = expVarStack[7][0]
+                                        extra_elmos = np.hstack((extra_elmos, out_elmo_stack[7][0]))
+                                        prev_exp_var = exp_var_stack[7][0]
                                     else:
-                                        ipem = maxPEMs - 1
+                                        ipem = max_pems - 1
                                 ibar += 1
                                 pbar.update(ibar)
     pbar.finish()
     return result
 
-def branch8(X, EM, nrel, maxPEMs):
-    nbranch = 8
+
+def branch_8(fluxes, elementary_modes, n_relax, max_pems):
+    n_branch = 8
     
     # Create working variables
-    result = np.zeros((maxPEMs, maxPEMs + 1))
-    outEMsStack = [None]*(nbranch + 1) # stores extracted EMs for each branch
-    expVarStack = [None]*(nbranch + 1) # stores variance values for each branch
+    result = np.zeros((max_pems, max_pems + 1))
+    out_elmo_stack = [None]*(n_branch + 1) # stores extracted EMs for each branch
+    exp_var_stack = [None]*(n_branch + 1) # stores variance values for each branch
     
-    allEMs, outEMsStack[0], expVarStack[0] = calcfuncs.generic_high_EMs(X, EM, np.array((), dtype='int64'), nrel)
+    all_elmos, out_elmo_stack[0], exp_var_stack[0] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, np.array((), dtype='int64'), n_relax)
     
-    result[0][0] = expVarStack[0][0]
-    result[0][1] = outEMsStack[0][0]
+    result[0][0] = exp_var_stack[0][0]
+    result[0][1] = out_elmo_stack[0][0]
     
     # Setup progress bar
     options = ['\r', 'Progress: ', pb.Bar(marker='#',left='[',right=']'), ' ', pb.Percentage()]
-    pbar = pb.ProgressBar(widgets=options, maxval=nrel**nbranch)
+    pbar = pb.ProgressBar(widgets=options, maxval=n_relax**n_branch)
     pbar.start()
     ibar = 0 # progress bar iterator
     
-    for i in range(nrel):
+    for i in range(n_relax):
         # First branch point
-        extraEMs = np.array([outEMsStack[0][i]])
-        allEMs, outEMsStack[1], expVarStack[1] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+        extra_elmos = np.array([out_elmo_stack[0][i]])
+        all_elmos, out_elmo_stack[1], exp_var_stack[1] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
         
-        for j in range(nrel):
+        for j in range(n_relax):
             # Second branch point
-            if expVarStack[1][j] > result[1][0]:
-                ne = allEMs.shape[0]
+            if exp_var_stack[1][j] > result[1][0]:
+                ne = all_elmos.shape[0]
                 
-                result[1][0] = expVarStack[1][j]
-                result[1][range(1, ne+1)] = allEMs[:,0]
+                result[1][0] = exp_var_stack[1][j]
+                result[1][range(1, ne+1)] = all_elmos[:,0]
                 
-            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j]))
-            allEMs, outEMsStack[2], expVarStack[2] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j]))
+            all_elmos, out_elmo_stack[2], exp_var_stack[2] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
             
-            for k in range(nrel):
+            for k in range(n_relax):
                 # Third branch point
-                if expVarStack[2][k] > result[2][0]:
-                    ne = allEMs.shape[0]
+                if exp_var_stack[2][k] > result[2][0]:
+                    ne = all_elmos.shape[0]
                     
-                    result[2][0] = expVarStack[2][k]
-                    result[2][range(1, ne+1)] = allEMs[:,0]
+                    result[2][0] = exp_var_stack[2][k]
+                    result[2][range(1, ne+1)] = all_elmos[:,0]
                     
-                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k]))
-                allEMs, outEMsStack[3], expVarStack[3] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k]))
+                all_elmos, out_elmo_stack[3], exp_var_stack[3] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                 
-                for o in range(nrel):
+                for o in range(n_relax):
                     # Fourth branch point
-                    if expVarStack[3][o] > result[3][0]:
-                        ne = allEMs.shape[0]
+                    if exp_var_stack[3][o] > result[3][0]:
+                        ne = all_elmos.shape[0]
                         
-                        result[3][0] = expVarStack[3][o]
-                        result[3][range(1, ne+1)] = allEMs[:,0]
+                        result[3][0] = exp_var_stack[3][o]
+                        result[3][range(1, ne+1)] = all_elmos[:,0]
                         
-                    extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k],
-                                          outEMsStack[3][o]))
-                    allEMs, outEMsStack[4], expVarStack[4] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                    extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k],
+                                          out_elmo_stack[3][o]))
+                    all_elmos, out_elmo_stack[4], exp_var_stack[4] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                     
-                    for p in range(nrel):
+                    for p in range(n_relax):
                         # Fifth branch point
-                        if expVarStack[4][p] > result[4][0]:
-                            ne = allEMs.shape[0]
+                        if exp_var_stack[4][p] > result[4][0]:
+                            ne = all_elmos.shape[0]
                             
-                            result[4][0] =  expVarStack[4][p]
-                            result[4][range(1, ne+1)] = allEMs[:,0]
+                            result[4][0] =  exp_var_stack[4][p]
+                            result[4][range(1, ne+1)] = all_elmos[:,0]
                             
-                        extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                              outEMsStack[3][o], outEMsStack[4][p]))
-                        allEMs, outEMsStack[5], expVarStack[5] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                        extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                              out_elmo_stack[3][o], out_elmo_stack[4][p]))
+                        all_elmos, out_elmo_stack[5], exp_var_stack[5] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                         
-                        for q in range(nrel):
+                        for q in range(n_relax):
                             # Sixth branch point
-                            if expVarStack[5][q] > result[5][0]:
-                                ne = allEMs.shape[0]
+                            if exp_var_stack[5][q] > result[5][0]:
+                                ne = all_elmos.shape[0]
                                 
-                                result[5][0] = expVarStack[5][q]
-                                result[5][range(1, ne+1)] = allEMs[:,0]
+                                result[5][0] = exp_var_stack[5][q]
+                                result[5][range(1, ne+1)] = all_elmos[:,0]
                                 
-                            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                  outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q]))
-                            allEMs, outEMsStack[6], expVarStack[6] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                  out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q]))
+                            all_elmos, out_elmo_stack[6], exp_var_stack[6] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                             
-                            for r in range(nrel):
+                            for r in range(n_relax):
                                 # Seventh branch point
-                                if expVarStack[6][r] > result[6][0]:
-                                    ne = allEMs.shape[0]
+                                if exp_var_stack[6][r] > result[6][0]:
+                                    ne = all_elmos.shape[0]
                                     
-                                    result[6][0] = expVarStack[6][r]
-                                    result[6][range(1, ne+1)] = allEMs[:,0]
+                                    result[6][0] = exp_var_stack[6][r]
+                                    result[6][range(1, ne+1)] = all_elmos[:,0]
                                     
-                                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                      outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q],
-                                                      outEMsStack[6][r]))
-                                allEMs, outEMsStack[7], expVarStack[7] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                      out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q],
+                                                      out_elmo_stack[6][r]))
+                                all_elmos, out_elmo_stack[7], exp_var_stack[7] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                 
-                                for s in range(nrel):
+                                for s in range(n_relax):
                                     # Eighth branch point
-                                    if expVarStack[7][s] > result[7][0]:
-                                        ne = allEMs.shape[0]
+                                    if exp_var_stack[7][s] > result[7][0]:
+                                        ne = all_elmos.shape[0]
                                         
-                                        result[7][0] = expVarStack[7][s]
-                                        result[7][range(1, ne+1)] = allEMs[:,0]
+                                        result[7][0] = exp_var_stack[7][s]
+                                        result[7][range(1, ne+1)] = all_elmos[:,0]
                                         
-                                    extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                          outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q],
-                                                          outEMsStack[6][r], outEMsStack[7][s]))
-                                    prev_expVar = expVarStack[7][0]
+                                    extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                          out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q],
+                                                          out_elmo_stack[6][r], out_elmo_stack[7][s]))
+                                    prev_exp_var = exp_var_stack[7][0]
                                     
                                     ipem = 7
-                                    while ipem < maxPEMs-1 and prev_expVar < 100:
+                                    while ipem < max_pems-1 and prev_exp_var < 100:
                                         ipem += 1
-                                        allEMs, outEMsStack[8], expVarStack[8] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                        all_elmos, out_elmo_stack[8], exp_var_stack[8] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                         
-                                        if nrel > 0 and expVarStack[8][0] > prev_expVar:
+                                        if n_relax > 0 and exp_var_stack[8][0] > prev_exp_var:
                                             
-                                            if expVarStack[8][0] > result[ipem][0]:
-                                                ne = allEMs.shape[0]
+                                            if exp_var_stack[8][0] > result[ipem][0]:
+                                                ne = all_elmos.shape[0]
                                                 
-                                                result[ipem][0] = expVarStack[8][0]
-                                                result[ipem][range(1, ne+1)] = allEMs[:,0]
+                                                result[ipem][0] = exp_var_stack[8][0]
+                                                result[ipem][range(1, ne+1)] = all_elmos[:,0]
                                                 
-                                            extraEMs = np.hstack((extraEMs, outEMsStack[8][0]))
-                                            prev_expVar = expVarStack[8][0]
+                                            extra_elmos = np.hstack((extra_elmos, out_elmo_stack[8][0]))
+                                            prev_exp_var = exp_var_stack[8][0]
                                         else:
-                                            ipem = maxPEMs - 1
+                                            ipem = max_pems - 1
                                     ibar += 1
                                     pbar.update(ibar)
     pbar.finish()
     return result
 
-def branch9(X, EM, nrel, maxPEMs):
-    nbranch = 9
+
+def branch_9(fluxes, elementary_modes, n_relax, max_pems):
+    n_branch = 9
     
     # Create working variables
-    result = np.zeros((maxPEMs, maxPEMs + 1))
-    outEMsStack = [None]*(nbranch + 1) # stores extracted EMs for each branch
-    expVarStack = [None]*(nbranch + 1) # stores variance values for each branch
+    result = np.zeros((max_pems, max_pems + 1))
+    out_elmo_stack = [None]*(n_branch + 1) # stores extracted EMs for each branch
+    exp_var_stack = [None]*(n_branch + 1) # stores variance values for each branch
     
-    allEMs, outEMsStack[0], expVarStack[0] = calcfuncs.generic_high_EMs(X, EM, np.array((), dtype='int64'), nrel)
+    all_elmos, out_elmo_stack[0], exp_var_stack[0] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, np.array((), dtype='int64'), n_relax)
     
-    result[0][0] = expVarStack[0][0]
-    result[0][1] = outEMsStack[0][0]
+    result[0][0] = exp_var_stack[0][0]
+    result[0][1] = out_elmo_stack[0][0]
     
     # Setup progress bar
     options = ['\r', 'Progress: ', pb.Bar(marker='#',left='[',right=']'), ' ', pb.Percentage()]
-    pbar = pb.ProgressBar(widgets=options, maxval=nrel**nbranch)
+    pbar = pb.ProgressBar(widgets=options, maxval=n_relax**n_branch)
     pbar.start()
     ibar = 0 # progress bar iterator
     
-    for i in range(nrel):
+    for i in range(n_relax):
         # First branch point
-        extraEMs = np.array([outEMsStack[0][i]])
-        allEMs, outEMsStack[1], expVarStack[1] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+        extra_elmos = np.array([out_elmo_stack[0][i]])
+        all_elmos, out_elmo_stack[1], exp_var_stack[1] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
         
-        for j in range(nrel):
+        for j in range(n_relax):
             # Second branch point
-            if expVarStack[1][j] > result[1][0]:
-                ne = allEMs.shape[0]
+            if exp_var_stack[1][j] > result[1][0]:
+                ne = all_elmos.shape[0]
                 
-                result[1][0] = expVarStack[1][j]
-                result[1][range(1, ne+1)] = allEMs[:,0]
+                result[1][0] = exp_var_stack[1][j]
+                result[1][range(1, ne+1)] = all_elmos[:,0]
                 
-            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j]))
-            allEMs, outEMsStack[2], expVarStack[2] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j]))
+            all_elmos, out_elmo_stack[2], exp_var_stack[2] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
             
-            for k in range(nrel):
+            for k in range(n_relax):
                 # Third branch point
-                if expVarStack[2][k] > result[2][0]:
-                    ne = allEMs.shape[0]
+                if exp_var_stack[2][k] > result[2][0]:
+                    ne = all_elmos.shape[0]
                     
-                    result[2][0] = expVarStack[2][k]
-                    result[2][range(1, ne+1)] = allEMs[:,0]
+                    result[2][0] = exp_var_stack[2][k]
+                    result[2][range(1, ne+1)] = all_elmos[:,0]
                     
-                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k]))
-                allEMs, outEMsStack[3], expVarStack[3] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k]))
+                all_elmos, out_elmo_stack[3], exp_var_stack[3] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                 
-                for o in range(nrel):
+                for o in range(n_relax):
                     # Fourth branch point
-                    if expVarStack[3][o] > result[3][0]:
-                        ne = allEMs.shape[0]
+                    if exp_var_stack[3][o] > result[3][0]:
+                        ne = all_elmos.shape[0]
                         
-                        result[3][0] = expVarStack[3][o]
-                        result[3][range(1, ne+1)] = allEMs[:,0]
+                        result[3][0] = exp_var_stack[3][o]
+                        result[3][range(1, ne+1)] = all_elmos[:,0]
                         
-                    extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k],
-                                          outEMsStack[3][o]))
-                    allEMs, outEMsStack[4], expVarStack[4] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                    extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k],
+                                          out_elmo_stack[3][o]))
+                    all_elmos, out_elmo_stack[4], exp_var_stack[4] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                     
-                    for p in range(nrel):
+                    for p in range(n_relax):
                         # Fifth branch point
-                        if expVarStack[4][p] > result[4][0]:
-                            ne = allEMs.shape[0]
+                        if exp_var_stack[4][p] > result[4][0]:
+                            ne = all_elmos.shape[0]
                             
-                            result[4][0] =  expVarStack[4][p]
-                            result[4][range(1, ne+1)] = allEMs[:,0]
+                            result[4][0] =  exp_var_stack[4][p]
+                            result[4][range(1, ne+1)] = all_elmos[:,0]
                             
-                        extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                              outEMsStack[3][o], outEMsStack[4][p]))
-                        allEMs, outEMsStack[5], expVarStack[5] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                        extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                              out_elmo_stack[3][o], out_elmo_stack[4][p]))
+                        all_elmos, out_elmo_stack[5], exp_var_stack[5] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                         
-                        for q in range(nrel):
+                        for q in range(n_relax):
                             # Sixth branch point
-                            if expVarStack[5][q] > result[5][0]:
-                                ne = allEMs.shape[0]
+                            if exp_var_stack[5][q] > result[5][0]:
+                                ne = all_elmos.shape[0]
                                 
-                                result[5][0] = expVarStack[5][q]
-                                result[5][range(1, ne+1)] = allEMs[:,0]
+                                result[5][0] = exp_var_stack[5][q]
+                                result[5][range(1, ne+1)] = all_elmos[:,0]
                                 
-                            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                  outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q]))
-                            allEMs, outEMsStack[6], expVarStack[6] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                  out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q]))
+                            all_elmos, out_elmo_stack[6], exp_var_stack[6] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                             
-                            for r in range(nrel):
+                            for r in range(n_relax):
                                 # Seventh branch point
-                                if expVarStack[6][r] > result[6][0]:
-                                    ne = allEMs.shape[0]
+                                if exp_var_stack[6][r] > result[6][0]:
+                                    ne = all_elmos.shape[0]
                                     
-                                    result[6][0] = expVarStack[6][r]
-                                    result[6][range(1, ne+1)] = allEMs[:,0]
+                                    result[6][0] = exp_var_stack[6][r]
+                                    result[6][range(1, ne+1)] = all_elmos[:,0]
                                     
-                                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                      outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q],
-                                                      outEMsStack[6][r]))
-                                allEMs, outEMsStack[7], expVarStack[7] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                      out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q],
+                                                      out_elmo_stack[6][r]))
+                                all_elmos, out_elmo_stack[7], exp_var_stack[7] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                 
-                                for s in range(nrel):
+                                for s in range(n_relax):
                                     # Eighth branch point
-                                    if expVarStack[7][s] > result[7][0]:
-                                        ne = allEMs.shape[0]
+                                    if exp_var_stack[7][s] > result[7][0]:
+                                        ne = all_elmos.shape[0]
                                         
-                                        result[7][0] = expVarStack[7][r]
-                                        result[7][range(1, ne+1)] = allEMs[:,0]
+                                        result[7][0] = exp_var_stack[7][r]
+                                        result[7][range(1, ne+1)] = all_elmos[:,0]
                                         
-                                    extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                          outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q],
-                                                          outEMsStack[6][r], outEMsStack[7][r]))
-                                    allEMs, outEMsStack[8], expVarStack[8] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                    extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                          out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q],
+                                                          out_elmo_stack[6][r], out_elmo_stack[7][r]))
+                                    all_elmos, out_elmo_stack[8], exp_var_stack[8] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                     
-                                    for t in range(nrel):
+                                    for t in range(n_relax):
                                         # Ninth branch point
-                                        if expVarStack[8][t] > result[8][0]:
-                                            ne = allEMs.shape[0]
+                                        if exp_var_stack[8][t] > result[8][0]:
+                                            ne = all_elmos.shape[0]
                                             
-                                            result[8][0] = expVarStack[8][t]
-                                            result[8][range(1, ne+1)] = allEMs[:,0]
+                                            result[8][0] = exp_var_stack[8][t]
+                                            result[8][range(1, ne+1)] = all_elmos[:,0]
                                             
-                                        extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                              outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q],
-                                                              outEMsStack[6][r], outEMsStack[7][s], outEMsStack[8][t]))
-                                        prev_expVar = expVarStack[8][0]
+                                        extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                              out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q],
+                                                              out_elmo_stack[6][r], out_elmo_stack[7][s], out_elmo_stack[8][t]))
+                                        prev_exp_var = exp_var_stack[8][0]
                                         
                                         ipem = 8
-                                        while ipem < maxPEMs-1 and prev_expVar < 100:
+                                        while ipem < max_pems-1 and prev_exp_var < 100:
                                             ipem += 1
-                                            allEMs, outEMsStack[9], expVarStack[9] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                            all_elmos, out_elmo_stack[9], exp_var_stack[9] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                             
-                                            if nrel > 0 and expVarStack[9][0] > prev_expVar:
+                                            if n_relax > 0 and exp_var_stack[9][0] > prev_exp_var:
                                                 
-                                                if expVarStack[9][0] > result[ipem][0]:
-                                                    ne = allEMs.shape[0]
+                                                if exp_var_stack[9][0] > result[ipem][0]:
+                                                    ne = all_elmos.shape[0]
                                                     
-                                                    result[ipem][0] = expVarStack[9][0]
-                                                    result[ipem][range(1, ne+1)] = allEMs[:,0]
+                                                    result[ipem][0] = exp_var_stack[9][0]
+                                                    result[ipem][range(1, ne+1)] = all_elmos[:,0]
                                                     
-                                                extraEMs = np.hstack((extraEMs, outEMsStack[9][0]))
-                                                prev_expVar = expVarStack[9][0]
+                                                extra_elmos = np.hstack((extra_elmos, out_elmo_stack[9][0]))
+                                                prev_exp_var = exp_var_stack[9][0]
                                             else:
-                                                ipem = maxPEMs - 1
+                                                ipem = max_pems - 1
                                         ibar += 1
                                         pbar.update(ibar)
     pbar.finish()
     return result
 
-def branch10(X, EM, nrel, maxPEMs):
-    nbranch = 10
+
+def branch_10(fluxes, elementary_modes, n_relax, max_pems):
+    n_branch = 10
     
     # Create working variables
-    result = np.zeros((maxPEMs, maxPEMs + 1))
-    outEMsStack = [None]*(nbranch + 1) # stores extracted EMs for each branch
-    expVarStack = [None]*(nbranch + 1) # stores variance values for each branch
+    result = np.zeros((max_pems, max_pems + 1))
+    out_elmo_stack = [None]*(n_branch + 1) # stores extracted EMs for each branch
+    exp_var_stack = [None]*(n_branch + 1) # stores variance values for each branch
     
-    allEMs, outEMsStack[0], expVarStack[0] = calcfuncs.generic_high_EMs(X, EM, np.array((), dtype='int64'), nrel)
+    all_elmos, out_elmo_stack[0], exp_var_stack[0] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, np.array((), dtype='int64'), n_relax)
     
-    result[0][0] = expVarStack[0][0]
-    result[0][1] = outEMsStack[0][0]
+    result[0][0] = exp_var_stack[0][0]
+    result[0][1] = out_elmo_stack[0][0]
     
     # Setup progress bar
     options = ['\r', 'Progress: ', pb.Bar(marker='#',left='[',right=']'), ' ', pb.Percentage()]
-    pbar = pb.ProgressBar(widgets=options, maxval=nrel**nbranch)
+    pbar = pb.ProgressBar(widgets=options, maxval=n_relax**n_branch)
     pbar.start()
     ibar = 0 # progress bar iterator
     
-    for i in range(nrel):
+    for i in range(n_relax):
         # First branch point
-        extraEMs = np.array([outEMsStack[0][i]])
-        allEMs, outEMsStack[1], expVarStack[1] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+        extra_elmos = np.array([out_elmo_stack[0][i]])
+        all_elmos, out_elmo_stack[1], exp_var_stack[1] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
         
-        for j in range(nrel):
+        for j in range(n_relax):
             # Second branch point
-            if expVarStack[1][j] > result[1][0]:
-                ne = allEMs.shape[0]
+            if exp_var_stack[1][j] > result[1][0]:
+                ne = all_elmos.shape[0]
                 
-                result[1][0] = expVarStack[1][j]
-                result[1][range(1, ne+1)] = allEMs[:,0]
+                result[1][0] = exp_var_stack[1][j]
+                result[1][range(1, ne+1)] = all_elmos[:,0]
                 
-            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j]))
-            allEMs, outEMsStack[2], expVarStack[2] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j]))
+            all_elmos, out_elmo_stack[2], exp_var_stack[2] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
             
-            for k in range(nrel):
+            for k in range(n_relax):
                 # Third branch point
-                if expVarStack[2][k] > result[2][0]:
-                    ne = allEMs.shape[0]
+                if exp_var_stack[2][k] > result[2][0]:
+                    ne = all_elmos.shape[0]
                     
-                    result[2][0] = expVarStack[2][k]
-                    result[2][range(1, ne+1)] = allEMs[:,0]
+                    result[2][0] = exp_var_stack[2][k]
+                    result[2][range(1, ne+1)] = all_elmos[:,0]
                     
-                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k]))
-                allEMs, outEMsStack[3], expVarStack[3] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k]))
+                all_elmos, out_elmo_stack[3], exp_var_stack[3] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                 
-                for o in range(nrel):
+                for o in range(n_relax):
                     # Fourth branch point
-                    if expVarStack[3][o] > result[3][0]:
-                        ne = allEMs.shape[0]
+                    if exp_var_stack[3][o] > result[3][0]:
+                        ne = all_elmos.shape[0]
                         
-                        result[3][0] = expVarStack[3][o]
-                        result[3][range(1, ne+1)] = allEMs[:,0]
+                        result[3][0] = exp_var_stack[3][o]
+                        result[3][range(1, ne+1)] = all_elmos[:,0]
                         
-                    extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k],
-                                          outEMsStack[3][o]))
-                    allEMs, outEMsStack[4], expVarStack[4] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                    extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k],
+                                          out_elmo_stack[3][o]))
+                    all_elmos, out_elmo_stack[4], exp_var_stack[4] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                     
-                    for p in range(nrel):
+                    for p in range(n_relax):
                         # Fifth branch point
-                        if expVarStack[4][p] > result[4][0]:
-                            ne = allEMs.shape[0]
+                        if exp_var_stack[4][p] > result[4][0]:
+                            ne = all_elmos.shape[0]
                             
-                            result[4][0] =  expVarStack[4][p]
-                            result[4][range(1, ne+1)] = allEMs[:,0]
+                            result[4][0] =  exp_var_stack[4][p]
+                            result[4][range(1, ne+1)] = all_elmos[:,0]
                             
-                        extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                              outEMsStack[3][o], outEMsStack[4][p]))
-                        allEMs, outEMsStack[5], expVarStack[5] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                        extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                              out_elmo_stack[3][o], out_elmo_stack[4][p]))
+                        all_elmos, out_elmo_stack[5], exp_var_stack[5] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                         
-                        for q in range(nrel):
+                        for q in range(n_relax):
                             # Sixth branch point
-                            if expVarStack[5][q] > result[5][0]:
-                                ne = allEMs.shape[0]
+                            if exp_var_stack[5][q] > result[5][0]:
+                                ne = all_elmos.shape[0]
                                 
-                                result[5][0] = expVarStack[5][q]
-                                result[5][range(1, ne+1)] = allEMs[:,0]
+                                result[5][0] = exp_var_stack[5][q]
+                                result[5][range(1, ne+1)] = all_elmos[:,0]
                                 
-                            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                  outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q]))
-                            allEMs, outEMsStack[6], expVarStack[6] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                  out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q]))
+                            all_elmos, out_elmo_stack[6], exp_var_stack[6] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                             
-                            for r in range(nrel):
+                            for r in range(n_relax):
                                 # Seventh branch point
-                                if expVarStack[6][r] > result[6][0]:
-                                    ne = allEMs.shape[0]
+                                if exp_var_stack[6][r] > result[6][0]:
+                                    ne = all_elmos.shape[0]
                                     
-                                    result[6][0] = expVarStack[6][r]
-                                    result[6][range(1, ne+1)] = allEMs[:,0]
+                                    result[6][0] = exp_var_stack[6][r]
+                                    result[6][range(1, ne+1)] = all_elmos[:,0]
                                     
-                                extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                      outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q],
-                                                      outEMsStack[6][r]))
-                                allEMs, outEMsStack[7], expVarStack[7] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                      out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q],
+                                                      out_elmo_stack[6][r]))
+                                all_elmos, out_elmo_stack[7], exp_var_stack[7] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                 
-                                for s in range(nrel):
+                                for s in range(n_relax):
                                     # Eighth branch point
-                                    if expVarStack[7][s] > result[7][0]:
-                                        ne = allEMs.shape[0]
+                                    if exp_var_stack[7][s] > result[7][0]:
+                                        ne = all_elmos.shape[0]
                                         
-                                        result[7][0] = expVarStack[7][r]
-                                        result[7][range(1, ne+1)] = allEMs[:,0]
+                                        result[7][0] = exp_var_stack[7][r]
+                                        result[7][range(1, ne+1)] = all_elmos[:,0]
                                         
-                                    extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                          outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q],
-                                                          outEMsStack[6][r], outEMsStack[7][r]))
-                                    allEMs, outEMsStack[8], expVarStack[8] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                    extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                          out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q],
+                                                          out_elmo_stack[6][r], out_elmo_stack[7][r]))
+                                    all_elmos, out_elmo_stack[8], exp_var_stack[8] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                     
-                                    for t in range(nrel):
+                                    for t in range(n_relax):
                                         # Ninth branch point
-                                        if expVarStack[8][t] > result[7][0]:
-                                            ne = allEMs.shape[0]
+                                        if exp_var_stack[8][t] > result[7][0]:
+                                            ne = all_elmos.shape[0]
                                             
-                                            result[8][0] = expVarStack[8][t]
-                                            result[8][range(1, ne+1)] = allEMs[:,0]
+                                            result[8][0] = exp_var_stack[8][t]
+                                            result[8][range(1, ne+1)] = all_elmos[:,0]
                                             
-                                        extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                              outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q],
-                                                              outEMsStack[6][r], outEMsStack[7][s], outEMsStack[8][t],))
-                                        allEMs, outEMsStack[9], expVarStack[9] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                        extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                              out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q],
+                                                              out_elmo_stack[6][r], out_elmo_stack[7][s], out_elmo_stack[8][t],))
+                                        all_elmos, out_elmo_stack[9], exp_var_stack[9] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                         
-                                        for u in range(nrel):
+                                        for u in range(n_relax):
                                             # Tenth branch point
-                                            if expVarStack[9][u] > result[9][0]:
-                                                ne = allEMs.shape[0]
+                                            if exp_var_stack[9][u] > result[9][0]:
+                                                ne = all_elmos.shape[0]
                                                 
-                                                result[9][0] = expVarStack[9][u]
-                                                result[9][range(1, ne+1)] = allEMs[:,0]
+                                                result[9][0] = exp_var_stack[9][u]
+                                                result[9][range(1, ne+1)] = all_elmos[:,0]
                                                 
-                                            extraEMs = np.hstack((outEMsStack[0][i], outEMsStack[1][j], outEMsStack[2][k], 
-                                                                  outEMsStack[3][o], outEMsStack[4][p], outEMsStack[5][q],
-                                                                  outEMsStack[6][r], outEMsStack[7][s], outEMsStack[8][t],
-                                                                  outEMsStack[9][u]))
-                                            prev_expVar = expVarStack[9][0]
+                                            extra_elmos = np.hstack((out_elmo_stack[0][i], out_elmo_stack[1][j], out_elmo_stack[2][k], 
+                                                                  out_elmo_stack[3][o], out_elmo_stack[4][p], out_elmo_stack[5][q],
+                                                                  out_elmo_stack[6][r], out_elmo_stack[7][s], out_elmo_stack[8][t],
+                                                                  out_elmo_stack[9][u]))
+                                            prev_exp_var = exp_var_stack[9][0]
                                             
                                             ipem = 9
-                                            while ipem < maxPEMs-1 and prev_expVar < 100:
+                                            while ipem < max_pems-1 and prev_exp_var < 100:
                                                 ipem += 1
-                                                allEMs, outEMsStack[10], expVarStack[10] = calcfuncs.generic_high_EMs(X, EM, extraEMs, nrel)
+                                                all_elmos, out_elmo_stack[10], exp_var_stack[10] = calcfuncs.generic_high_elmos(fluxes, elementary_modes, extra_elmos, n_relax)
                                                 
-                                                if nrel > 0 and expVarStack[10][0] > prev_expVar:
+                                                if n_relax > 0 and exp_var_stack[10][0] > prev_exp_var:
                                                     
-                                                    if expVarStack[10][0] > result[ipem][0]:
-                                                        ne = allEMs.shape[0]
+                                                    if exp_var_stack[10][0] > result[ipem][0]:
+                                                        ne = all_elmos.shape[0]
                                                         
-                                                        result[ipem][0] = expVarStack[10][0]
-                                                        result[ipem][range(1, ne+1)] = allEMs[:,0]
+                                                        result[ipem][0] = exp_var_stack[10][0]
+                                                        result[ipem][range(1, ne+1)] = all_elmos[:,0]
                                                         
-                                                    extraEMs = np.hstack((extraEMs, outEMsStack[10][0]))
-                                                    prev_expVar = expVarStack[10][0]
+                                                    extra_elmos = np.hstack((extra_elmos, out_elmo_stack[10][0]))
+                                                    prev_exp_var = exp_var_stack[10][0]
                                                 else:
-                                                    ipem = maxPEMs - 1
+                                                    ipem = max_pems - 1
                                             ibar += 1
                                             pbar.update(ibar)
     pbar.finish()

@@ -23,71 +23,80 @@ along with PyPEMA.  If not, see <https://www.gnu.org/licenses/>.
 import numpy as np
 
 
-def pretreatment(X, EM):
+def pretreatment(fluxes, elementary_modes):
     """
     This function executes the normalization of the flux and Elementary mode
-    data. The procedure computes the division of all matrix columnms by the
+    data. The procedure computes the division of all matrix columns by the
     respective standard deviation.
     """
     
-    if X.shape[0]:
-        S = np.std(X, axis=0, ddof=1).reshape(1,X.shape[1])
-        S[S == 0] = 1
-        normX = X/S
-        normEM = EM/S.T
+    if fluxes.shape[0]:
+        stoichiometric_matrix = np.std(fluxes, axis=0, ddof=1).reshape(
+            1, fluxes.shape[1]
+        )
+        stoichiometric_matrix[stoichiometric_matrix == 0] = 1
+        normalised_fluxes = fluxes/stoichiometric_matrix
+        normalised_elmos = elementary_modes/stoichiometric_matrix.scores
         
-    return normX, normEM
+        return normalised_fluxes, normalised_elmos
+
+    return None, None
 
 
-def compute_fluxes_estimate(X, EM, positive_scores):
+def compute_fluxes_estimate(fluxes, elementary_modes, positive_scores):
     
-    # Computation of the scores matrix (T)
-    T = np.dot(np.dot(X, EM), 
+    # Computation of the scores matrix (scores)
+    scores = np.dot(np.dot(fluxes, elementary_modes), 
                np.linalg.pinv(
-                       np.dot(EM.T, EM)))
+                       np.dot(elementary_modes.scores, elementary_modes)))
     
     # NOTE: verify if this should be a matter of choice!!!
     if positive_scores:
-        T[T<0] = 0
+        scores[scores < 0] = 0
     
-    Xrec = np.dot(T, EM.T)
-    return Xrec, T
+    fluxes_recovered = np.dot(scores, elementary_modes.scores)
+    return fluxes_recovered, scores
 
 
-def explained_variance(X, EM):
+def explained_variance(fluxes, elementary_modes):
     
-    Xrec, _ = compute_fluxes_estimate(X, EM, True)
-    Err = X - Xrec
-    expVar = 100 * (1 - ( np.sum(np.square(Err)) / np.sum(np.square(X)) ) )
+    fluxes_recovered, _ = compute_fluxes_estimate(
+        fluxes, elementary_modes, True
+    )
+    errors = fluxes - fluxes_recovered
+    explained_var = 100 * (
+            1 - (np.sum(np.square(errors)) / np.sum(np.square(fluxes)))
+    )
     
-    return expVar
+    return explained_var
 
 
-def generic_high_EMs(X, EM, EMlist, nrel):
+def generic_high_elmos(fluxes, elementary_modes, elmo_list, n_relax):
     
-    nEMs = EM.shape[1]
-    expVar = np.empty(nEMs)
+    n_elmos = elementary_modes.shape[1]
+    explained_var = np.empty(n_elmos)
     
-    for i in range(nEMs):
-        if np.sum(EMlist == i) == 0:
-            # Select the subset of elementary modes from EMlist
-            EMlist_sel = np.append(EMlist, i)
-            EM_sel = EM[:, EMlist_sel]
+    for i in range(n_elmos):
+        if np.sum(elmo_list == i) == 0:
+            # Select the subset of elementary modes from elmo_list
+            elmo_list_sel = np.append(elmo_list, i)
+            elmo_sel = elementary_modes[:, elmo_list_sel]
             
-            # Compute the explained variance for the EM subset
-            expVar[i] = explained_variance(X, EM_sel)
+            # Compute the explained variance for the elementary_modes subset
+            explained_var[i] = explained_variance(fluxes, elmo_sel)
         else:
-            expVar[i] = 0
+            explained_var[i] = 0
     
     # Sort elementary modes by descending vlaues of explained variance
-    sorted_expVar = np.sort(expVar)[::-1]
-    indEMs = np.argsort(expVar)[::-1]
+    sorted_exp_var = np.sort(explained_var)[::-1]
+    index_elmos = np.argsort(explained_var)[::-1]
     
     # Compute the output values
-    outExpVar = sorted_expVar[:nrel]
-    outEMs = indEMs[:nrel]
+    out_exp_var = sorted_exp_var[:n_relax]
+    out_elmos = index_elmos[:n_relax]
     
-    stacked_EMlist = EMlist.reshape(EMlist.size,1) * np.ones([EMlist.size, outEMs.size])
-    allEMs = np.vstack((stacked_EMlist, outEMs))
-    
-    return allEMs, outEMs, outExpVar
+    stacked_elmo_list = elmo_list.reshape(elmo_list.size, 1) * \
+        np.ones([elmo_list.size, out_elmos.size])
+    all_elmos = np.vstack((stacked_elmo_list, out_elmos))
+
+    return all_elmos, out_elmos, out_exp_var
