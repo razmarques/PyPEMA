@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 
 from pema import calcfuncs
 
+
 def create_rgb_map(red, green, blue):
     npos = red.size
     pos = np.linspace(0, 1, npos)
@@ -37,6 +38,7 @@ def create_rgb_map(red, green, blue):
     
     cmap = mpl.colors.LinearSegmentedColormap('new_cmap', cdict)
     return cmap
+
 
 def obs_vs_pred(X, EM, EMlist):
     
@@ -52,6 +54,7 @@ def obs_vs_pred(X, EM, EMlist):
     plt.title("Observed vs. predicted", fontsize=14)
     plt.xlabel("Observed values", fontsize=12)
     plt.ylabel("Predicted values", fontsize=12)
+
 
 def pem_plot(X, EM, EMlist):
     

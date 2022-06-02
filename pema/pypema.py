@@ -27,35 +27,66 @@ from pema import calcfuncs
 from pema import branching
 from pema import dataio
 
-def run(X, EM, nrel, nbranch, maxPEMs, save_output=False):
+
+def run(fluxes, 
+        elementary_modes, 
+        n_relax, 
+        n_branch, 
+        max_pems, 
+        save_output=False):
     
     # Data pretreatment
-    normX, normEM = calcfuncs.pretreatment(X, EM)
+    normalised_fluxes, normalised_elmos = calcfuncs.pretreatment(
+        fluxes, 
+        elementary_modes
+    )
     
     tic = timeit.default_timer()
     
     # Run PEMA according to branch number
-    print("Running PEMA for {0} relaxations and {1} branch points".format(nrel, nbranch))
-    if nbranch == 1:
-        result = branching.branch1(normX, normEM, nrel, maxPEMs)
-    elif nbranch == 2:
-        result = branching.branch2(normX, normEM, nrel, maxPEMs)
-    elif nbranch == 3:
-        result = branching.branch3(normX, normEM, nrel, maxPEMs)
-    elif nbranch == 4:
-        result = branching.branch4(normX, normEM, nrel, maxPEMs)
-    elif nbranch == 5:
-        result = branching.branch5(normX, normEM, nrel, maxPEMs)
-    elif nbranch == 6:
-        result = branching.branch6(normX, normEM, nrel, maxPEMs)
-    elif nbranch == 7:
-        result = branching.branch7(normX, normEM, nrel, maxPEMs)
-    elif nbranch == 8:
-        result = branching.branch8(normX, normEM, nrel, maxPEMs)
-    elif nbranch == 9:
-        result = branching.branch9(normX, normEM, nrel, maxPEMs)
-    elif nbranch == 10:
-        result = branching.branch10(normX, normEM, nrel, maxPEMs)
+    print("Running PEMA for {0} relaxations and {1} branch points".format(
+        n_relax, n_branch)
+    )
+    if n_branch == 1:
+        result = branching.branch_1(
+            normalised_fluxes, normalised_elmos, n_relax, max_pems
+        )
+    elif n_branch == 2:
+        result = branching.branch_2(
+            normalised_fluxes, normalised_elmos, n_relax, max_pems
+        )
+    elif n_branch == 3:
+        result = branching.branch_3(
+            normalised_fluxes, normalised_elmos, n_relax, max_pems
+        )
+    elif n_branch == 4:
+        result = branching.branch_4(
+            normalised_fluxes, normalised_elmos, n_relax, max_pems
+        )
+    elif n_branch == 5:
+        result = branching.branch_5(
+            normalised_fluxes, normalised_elmos, n_relax, max_pems
+        )
+    elif n_branch == 6:
+        result = branching.branch_6(
+            normalised_fluxes, normalised_elmos, n_relax, max_pems
+        )
+    elif n_branch == 7:
+        result = branching.branch_7(
+            normalised_fluxes, normalised_elmos, n_relax, max_pems
+        )
+    elif n_branch == 8:
+        result = branching.branch_8(
+            normalised_fluxes, normalised_elmos, n_relax, max_pems
+        )
+    elif n_branch == 9:
+        result = branching.branch_9(
+            normalised_fluxes, normalised_elmos, n_relax, max_pems
+        )
+    elif n_branch == 10:
+        result = branching.branch_10(
+            normalised_fluxes, normalised_elmos, n_relax, max_pems
+        )
     else:
         raise ValueError('Only a maximum of 10 branches are allowed.')
     
@@ -65,7 +96,7 @@ def run(X, EM, nrel, nbranch, maxPEMs, save_output=False):
 
     # Save results to file
     if save_output:
-        savefile = 'pems-{0}_rel-{1}_branch'.format(nrel, nbranch)
+        savefile = 'pems-{0}_rel-{1}_branch'.format(n_relax, n_branch)
         dataio.save_formated_result(savefile, result)
 
     return result
