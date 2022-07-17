@@ -26,7 +26,7 @@ import numpy as np
 
 import progressbar as pb
 
-from pema import calcfuncs
+from pypema import calcfuncs
 
 
 def branch_1(fluxes, elementary_modes, n_relax, max_pems):

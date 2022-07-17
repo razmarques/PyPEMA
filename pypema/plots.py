@@ -24,7 +24,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-from pema import calcfuncs
+from pypema import calcfuncs
 
 
 def create_rgb_map(red, green, blue):
@@ -141,6 +141,7 @@ def pem_plot(X, EM, EMlist):
     plt.xlabel("PEMs", fontsize=12)
     plt.ylabel("Reactions", fontsize=12)
 
+
 def scree_plot(result):
     nnz = np.count_nonzero(result[:,0])
     
@@ -152,6 +153,7 @@ def scree_plot(result):
     plt.title("Cumulative scree plot", fontsize=14)
     plt.xlabel("Number of PEMs", fontsize=12)
     plt.ylabel("Explained variance (%) (scaled data)", fontsize=12)
+
 
 def variance_obs(X, EM, EMlist):
     nxi = X.shape[0]
@@ -169,6 +171,7 @@ def variance_obs(X, EM, EMlist):
     plt.title("Explained variance per observation", fontsize=14)
     plt.xlabel("Observation number", fontsize=12)
     plt.ylabel("Explained variance (%)", fontsize=12)
+
 
 def weighting_plot(X, EM, EMlist):
     EMsel = EM[:, EMlist]
@@ -197,6 +200,7 @@ def weighting_plot(X, EM, EMlist):
         plt.title("Weighting plot (binary)", fontsize=14)
         plt.xlabel("PEMs", fontsize=12)
         plt.ylabel("Observations", fontsize=12)
+
 
 def weights_vars(X, EM, EMlist):
     nEM = len(EMlist)

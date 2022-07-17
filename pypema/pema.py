@@ -23,12 +23,15 @@ along with PyPEMA.  If not, see <https://www.gnu.org/licenses/>.
 import timeit
 import time
 
-from pema import calcfuncs
-from pema import branching
-from pema import dataio
+import click
+
+from pypema.branching import branch_1, branch_2, branch_3, branch_4, branch_5, \
+    branch_6, branch_7, branch_8, branch_9, branch_10
+from pypema.calcfuncs import pretreatment
+from pypema.utils import save_formated_result
 
 
-def run(fluxes, 
+def run(fluxes,
         elementary_modes, 
         n_relax, 
         n_branch, 
@@ -36,7 +39,7 @@ def run(fluxes,
         save_output=False):
     
     # Data pretreatment
-    normalised_fluxes, normalised_elmos = calcfuncs.pretreatment(
+    normalised_fluxes, normalised_elmos = pretreatment(
         fluxes, 
         elementary_modes
     )
@@ -48,43 +51,43 @@ def run(fluxes,
         n_relax, n_branch)
     )
     if n_branch == 1:
-        result = branching.branch_1(
+        result = branch_1(
             normalised_fluxes, normalised_elmos, n_relax, max_pems
         )
     elif n_branch == 2:
-        result = branching.branch_2(
+        result = branch_2(
             normalised_fluxes, normalised_elmos, n_relax, max_pems
         )
     elif n_branch == 3:
-        result = branching.branch_3(
+        result = branch_3(
             normalised_fluxes, normalised_elmos, n_relax, max_pems
         )
     elif n_branch == 4:
-        result = branching.branch_4(
+        result = branch_4(
             normalised_fluxes, normalised_elmos, n_relax, max_pems
         )
     elif n_branch == 5:
-        result = branching.branch_5(
+        result = branch_5(
             normalised_fluxes, normalised_elmos, n_relax, max_pems
         )
     elif n_branch == 6:
-        result = branching.branch_6(
+        result = branch_6(
             normalised_fluxes, normalised_elmos, n_relax, max_pems
         )
     elif n_branch == 7:
-        result = branching.branch_7(
+        result = branch_7(
             normalised_fluxes, normalised_elmos, n_relax, max_pems
         )
     elif n_branch == 8:
-        result = branching.branch_8(
+        result = branch_8(
             normalised_fluxes, normalised_elmos, n_relax, max_pems
         )
     elif n_branch == 9:
-        result = branching.branch_9(
+        result = branch_9(
             normalised_fluxes, normalised_elmos, n_relax, max_pems
         )
     elif n_branch == 10:
-        result = branching.branch_10(
+        result = branch_10(
             normalised_fluxes, normalised_elmos, n_relax, max_pems
         )
     else:
@@ -97,6 +100,38 @@ def run(fluxes,
     # Save results to file
     if save_output:
         savefile = 'pems-{0}_rel-{1}_branch'.format(n_relax, n_branch)
-        dataio.save_formated_result(savefile, result)
+        save_formated_result(savefile, result)
 
     return result
+
+
+@click.command(
+    help="Executes the Principal Elementary Mode Analysis for input "
+         "fluxes and Elementary Modes files"
+)
+@click.argument(
+    'flux_input',
+    type=click.File('rb')
+)
+@click.argument(
+    'elmo_input',
+    type=click.File('rb')
+)
+@click.argument(
+    'nrel',
+    type=click.INT
+)
+@click.argument(
+    'nbranch',
+    type=click.INT
+)
+@click.argument(
+    'max_pems',
+    type=click.INT
+)
+def cli(flux_input, elmo_input, nrel, nbranch, max_pems):
+    print("Running PyPEMA!!!")
+
+
+if __name__ == "__main__":
+    cli()
